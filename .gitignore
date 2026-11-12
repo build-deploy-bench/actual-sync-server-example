@@ -26,7 +26,6 @@ packages/crdt/dist
 packages/desktop-client/build-stats
 packages/desktop-client/dev-dist
 packages/desktop-client/public/kcab
-packages/desktop-client/locale
 packages/desktop-client/playwright-report
 packages/desktop-client/test-results
 packages/desktop-electron/client-build
