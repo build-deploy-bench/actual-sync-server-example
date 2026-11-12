@@ -1,7 +1,8 @@
 # Build-deploy benchmark image, built by Render, Railway, Fly and Vercel from this one file.
 # It is upstream sync-server.Dockerfile with the install and build steps run through bench/build.sh, so the
-# ::bench:: markers wrap them on every provider. BuildKit-only syntax is avoided, because Vercel builds with Buildah.
-FROM node:24.22.1-bookworm AS builder
+# ::bench:: markers wrap them on every provider. No BuildKit-only syntax (Vercel builds with Buildah) and no --platform
+# (every provider builds linux/amd64 natively). Base images are pinned by tag and digest.
+FROM node:24.22.1-bookworm@sha256:d862bb5d082c5ae0210ac07e8c0344cb8cf7bef6d78e9b8c50c179da923108ea AS builder
 
 RUN apt-get update && apt-get install -y openssl
 
@@ -35,13 +36,13 @@ ENV NODE_OPTIONS=--max_old_space_size=8192
 # The provider passes the commit as a build arg (Render: RENDER_GIT_COMMIT; Railway: RAILWAY_GIT_COMMIT_SHA;
 # Vercel: VERCEL_GIT_COMMIT_SHA; Fly: the harness sets BENCH_COMMIT). Declared after the install step, so a new
 # commit does not invalidate the install layer.
-ARG BENCH_COMMIT
-ARG RENDER_GIT_COMMIT
-ARG RAILWAY_GIT_COMMIT_SHA
-ARG VERCEL_GIT_COMMIT_SHA
+ARG BENCH_COMMIT=""
+ARG RENDER_GIT_COMMIT=""
+ARG RAILWAY_GIT_COMMIT_SHA=""
+ARG VERCEL_GIT_COMMIT_SHA=""
 RUN sh ./bench/build.sh build
 
-FROM node:24.22.1-bookworm-slim AS prod
+FROM node:24.22.1-bookworm-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c AS prod
 
 # Minimal runtime dependencies
 RUN apt-get update && apt-get install -y tini && apt-get clean -y && rm -rf /var/lib/apt/lists/*
@@ -55,7 +56,10 @@ RUN groupadd --gid $USER_GID $USERNAME \
     && mkdir /data && chown -R ${USERNAME}:${USERNAME} /data
 
 WORKDIR /app
-ENV NODE_ENV=production
+# The server reads PORT. 80 is Vercel's routed port; Render and Railway set their own at runtime. Upstream creates the
+# actual user but runs as root, so port 80 needs no capability.
+ENV NODE_ENV=production \
+    PORT=80
 
 # Pull in only the necessary artifacts (built node_modules, server files, etc.)
 COPY --from=builder /app/node_modules /app/node_modules
@@ -64,5 +68,5 @@ COPY --from=builder /app/packages/sync-server/build ./build
 COPY bench/start.sh bench/start.sh
 
 ENTRYPOINT ["/usr/bin/tini", "-g", "--"]
-EXPOSE 5006
+EXPOSE 80
 CMD ["sh", "./bench/start.sh"]

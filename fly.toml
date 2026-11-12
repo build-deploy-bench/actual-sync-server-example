@@ -3,9 +3,11 @@
 # harness, not stored here. Fly builds the root Dockerfile, the same file as the other providers.
 primary_region = "iad"
 
+[build]
+  dockerfile = "Dockerfile"
+
 [http_service]
-  # The upstream default port. The app reads PORT, which Fly does not set.
-  internal_port = 5006
+  internal_port = 80
   force_https = true
   # One always-on Machine: a stopped Machine is updated but not started by `fly deploy`,
   # which would hide the boot from the deploy measurement.
