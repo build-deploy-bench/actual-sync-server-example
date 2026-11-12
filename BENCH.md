@@ -65,12 +65,12 @@ All four build the root `Dockerfile`. Auto-deploy is off everywhere. The setup d
 ### Vercel
 
 - Team `build-deploy-bench`. Project `bdb-actual-sync-server` `prj_Hz5tBCElE3LcDDs7xCUF9wF5SMKI`, https://bdb-actual-sync-server.vercel.app. No Git link; deploys upload a clean context with `vercel deploy --prod`.
-- Container Runtime (`framework: container`). Function region `iad1`. Build machine `standard`, selection `fixed` (4 vCPU / 8 GB). Most other projects use `standard` with `elastic`.
+- Container Runtime (`framework: container`). Function region `iad1`. Build machine `standard`, selection `fixed` (4 vCPU / 8 GB), like every fixture project.
 - Setup deploy `dpl_5MsskZUx1CFtrq3zHLECev3GLAvT` of `ded5fef`: READY, `/version` returned the run ID. `commit` is `unknown`: a project env var `BENCH_COMMIT` (tried once, then removed) did not reach the Dockerfile either.
 
 ### Fly.io
 
-- Org `personal`. App `bdb-actual-sync-server`, https://bdb-actual-sync-server.fly.dev, `iad`, shared-cpu-1x with 512 MB (the app uses about 250 MB idle), one always-on Machine. Health check `/health`, `internal_port = 80`.
+- Org `personal`. App `bdb-actual-sync-server`, https://bdb-actual-sync-server.fly.dev, `iad`, shared-cpu-1x with 1 GB (the `fly launch` default; the app uses about 250 MB idle), one always-on Machine. Health check `/health`, `internal_port = 80`.
 - Deploy: `flyctl deploy --config fly.toml -a bdb-actual-sync-server --remote-only --depot=false --ha=false --strategy bluegreen --build-arg BENCH_COMMIT=<sha>` from a `git archive` of the commit.
 - Deploys of `ded5fef` (2026-11-12): the first one ran while other fixtures built on the same remote builder (install 13 min) and was stopped. Setup deploy of `f6a759a` with the Fly build lock: `/version` returned the right SHA and run ID.
 - Fly's remote builder is much slower for this build than the other builders: the build step took 434 s cold and 377 s warm with the builder to itself, against 78 to 118 s elsewhere. Most of the gap is in disk-heavy steps (the `git add -A` of `node_modules` and the Vite build).
