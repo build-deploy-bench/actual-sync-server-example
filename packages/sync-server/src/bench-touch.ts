@@ -1,1 +1,1 @@
-export const BENCH_TOUCH = "2026-11-12-full-render-docker-medium-r3-014006";
+export const BENCH_TOUCH = "2026-11-12-full-fly-docker-medium-r1-025037";
