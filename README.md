@@ -1,3 +1,6 @@
+> [!WARNING]
+> **Benchmark fixture: do not use.** This repository is a copy of [actualbudget/actual](https://github.com/actualbudget/actual). We use it only as a test workload to measure build and deploy times on hosting platforms. It has benchmark patches (see [`BENCH.md`](BENCH.md)), gets no upstream fixes, and is not maintained. To use or contribute to the project, go to [actualbudget/actual](https://github.com/actualbudget/actual).
+
 <p align="center">
   <img src="/demo.png" alt="Actualbudget" />
 </p>
