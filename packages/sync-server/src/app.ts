@@ -19,6 +19,7 @@ import * as pluggai from './app-pluggyai/app-pluggyai';
 import * as secretApp from './app-secrets';
 import * as simpleFinApp from './app-simplefin/app-simplefin';
 import * as syncApp from './app-sync';
+import { BENCH_TOUCH } from './bench-touch';
 import { config } from './load-config';
 
 const debugSensitive = createDebug('actual-sensitive:server');
@@ -121,6 +122,26 @@ app.get('/info', (_req, res) => {
   });
 });
 
+// Benchmark deployment identity. bench/build.sh writes the commit next to the built entry point
+// (build/app.js); the run and deployment IDs are runtime env vars that the harness sets per deploy.
+function readBenchCommit() {
+  try {
+    const entry = process.argv[1] ? resolve(process.argv[1], '..') : '';
+    return readFileSync(join(entry, 'bench-commit'), 'utf-8').trim() || 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
+const benchVersion = {
+  commit: readBenchCommit(),
+  run: process.env.BENCH_RUN_ID || 'unknown',
+  deployment: process.env.RAILWAY_DEPLOYMENT_ID || 'unknown',
+  touch: BENCH_TOUCH,
+};
+app.get('/version', (_req, res) => {
+  res.status(200).json(benchVersion);
+});
+
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'UP' });
 });
@@ -191,6 +212,8 @@ export function parseHTTPSConfig(value: string) {
 }
 
 function sendServerStartedMessage() {
+  // The benchmark parsers read this marker as the end of app boot.
+  console.log(`::bench::listening ${Date.now()}`);
   // Signify to any parent process that the server has started. Used in electron desktop app
   // oxlint-disable-next-line typescript/ban-ts-comment
   // @ts-ignore-error electron types
