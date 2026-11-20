@@ -28,7 +28,9 @@ build() {
   if ! git rev-parse --git-dir >/dev/null 2>&1; then
     git -c init.defaultBranch=master init -q
     git -c user.email=build@docker -c user.name=docker-build add -A
-    git -c user.email=build@docker -c user.name=docker-build commit -qm build
+    # gc.auto=0: the commit would otherwise start a detached `git gc --auto`. Its pack-objects uses 0.6 to 0.9 GiB
+    # while the Vite build runs, which is too much on a 4 GB builder (Fly's Depot). The repo is thrown away anyway.
+    git -c gc.auto=0 -c user.email=build@docker -c user.name=docker-build commit -qm build
   fi
   # The translations are vendored at a pinned commit (see BENCH.md), so skip the clone of their HEAD.
   yarn build:browser --skip-translations

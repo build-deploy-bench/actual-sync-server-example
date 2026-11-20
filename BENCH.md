@@ -21,7 +21,7 @@
    - Start command `sh ./bench/start.sh`, which prints `::bench::start <ms>` and then `exec node build/app.js` under upstream's `tini` entrypoint.
 6. Added `bench/build.sh`, `bench/start.sh`, `fly.toml`, `vercel.json` and this file. `fly.toml` was in upstream `.gitignore`; that entry is removed.
 
-The upstream 8 GB Node heap limit (`NODE_OPTIONS=--max_old_space_size=8192`) is kept. It is only a limit: the builds used far less, and no builder ran out of memory (Render and Vercel builders have 8 GB, Railway more, Fly's remote builder 8 GB). `lage` needs a git repo, so the build step does upstream's `git init` + `git add -A` + `git commit` of the build context (including `node_modules`) when the context has no `.git`. That takes 10 to 40 s and is part of the build span on every provider.
+The upstream 8 GB Node heap limit (`NODE_OPTIONS=--max_old_space_size=8192`) is kept. It is only a limit: the build peaks at about 2.8 GiB (measured in a 4 GB, 4 CPU container), and Render and Vercel builders have 8 GB, Railway more. Fly's Depot builder has 4 GB, so the peak matters there. `lage` needs a git repo, so the build step does upstream's `git init` + `git add -A` + `git commit` of the build context (including `node_modules`) when the context has no `.git`. That takes 10 to 40 s and is part of the build span on every provider. The commit runs with `gc.auto=0`: without it git starts a background `git gc --auto` whose `pack-objects` uses 0.6 to 0.9 GiB during the Vite build (peak 3.5 GiB), and the Depot build sometimes stalled or died (2026-11-16 to 2026-11-18). The build time is the same with or without the gc.
 
 The server needs no secrets. SQLite and the server files live in `/data` inside the container (upstream default); data is lost on each deploy.
 
