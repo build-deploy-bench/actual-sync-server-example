@@ -1,1 +1,1 @@
-export const BENCH_TOUCH = "2026-11-23-gh12-render-docker-medium-r3-080259";
+export const BENCH_TOUCH = "2026-11-25-gh13-railway-docker-medium-r1-064419";
