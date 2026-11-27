@@ -1,1 +1,1 @@
-export const BENCH_TOUCH = "2026-11-27-gh14-fly-docker-medium-r3-065720";
+export const BENCH_TOUCH = "2026-11-27-gh14-vercel-docker-medium-r1-072521";
